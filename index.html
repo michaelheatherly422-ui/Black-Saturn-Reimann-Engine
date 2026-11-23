@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07080f">
+<meta name="description" content="BLACK SATURN — an experimental 14D acoustic synthesizer and sound-design instrument.">
+<title>BLACK SATURN // SOLITARIUS SORTIARIUS — 14D Sound Engine</title>
+<style>
+  :root {
+    --bg-obsidian: #07080f;
+    --bg-panel: #0e111f;
+    --bg-card: #13182b;
+    --border-dim: #222947;
+    --cyan: #2de2e6;
+    --cyan-glow: rgba(45, 226, 230, 0.35);
+    --violet: #9d4edd;
+    --violet-glow: rgba(157, 78, 221, 0.35);
+    --text-main: #e2e8f0;
+    --text-muted: #8b95b5;
+    --danger: #ff4d6d;
+    --success: #00f5d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg-obsidian);
+    color: var(--text-main);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    line-height: 1.5;
+    padding: 16px;
+    background-image: radial-gradient(circle at 50% 0%, rgba(157, 78, 221, 0.12) 0%, transparent 55%),
+                      radial-gradient(circle at 80% 20%, rgba(45, 226, 230, 0.08) 0%, transparent 45%);
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Header & Emblem */
+  header {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    border-radius: 10px;
+    padding: 18px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+  }
+
+  .brand-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand-title h1 {
+    font-size: 1.55rem;
+    letter-spacing: 0.22em;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+  }
+
+  .brand-subtitle {
+    font-size: 0.85rem;
+    letter-spacing: 0.35em;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .reticle {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid var(--cyan);
+    border-radius: 50%;
+    position: relative;
+  }
+  .reticle::after {
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 4px; height: 4px;
+    background: var(--violet);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  button {
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--border-dim);
+    padding: 9px 14px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  button:hover {
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px var(--cyan-glow);
+  }
+
+  button.primary {
+    background: linear-gradient(135deg, rgba(157, 78, 221, 0.25), rgba(45, 226, 230, 0.25));
+    border-color: var(--cyan);
+    color: #fff;
+  }
+
+  button.active {
+    background: var(--cyan);
+    color: var(--bg-obsidian);
+    border-color: var(--cyan);
+    box-shadow: 0 0 14px var(--cyan-glow);
+  }
+
+  button.recording {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
+
+  /* Telemetry & Solar Time Deck */
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+  }
+
+  .telemetry-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    border-radius: 8px;
+    padding: 12px 16px;
+  }
+
+  .telemetry-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .telemetry-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--cyan);
+  }
+
+  .telemetry-sub {
+    font-size: 0.75rem;
+    color: var(--violet);
+    margin-top: 3px;
+  }
+
+  .coord-inputs {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    align-items: center;
+  }
+
+  .coord-inputs input {
+    width: 82px;
+    background: var(--bg-obsidian);
+    border: 1px solid var(--border-dim);
+    color: var(--cyan);
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.78rem;
+  }
+
+  /* Visualizer Canvas */
+  .visualizer-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .vis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .vis-header span {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    color: var(--cyan);
+  }
+
+  canvas {
+    width: 100%;
+    height: 210px;
+    background: #05060b;
+    border: 1px solid var(--border-dim);
+    border-radius: 6px;
+    display: block;
+  }
+
+  /* Presets & Physics Macro Controls */
+  .macro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .panel-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-dim);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .panel-title {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--violet);
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .control-row {
+    margin-bottom: 12px;
+  }
+
+  .control-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    margin-bottom: 4px;
+  }
+
+  .control-header span:last-child {
+    color: var(--cyan);
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--cyan);
+    cursor: pointer;
+  }
+
+  .preset-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* 7 Orthogonal Rotational Planes (14D) */
+  .planes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .plane-strip {
+    background: var(--bg-card);
+    border: 1px solid var(--border-dim);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.2s;
+  }
+
+  .plane-strip.midi-target {
+    border-color: var(--violet);
+    box-shadow: 0 0 14px var(--violet-glow);
+  }
+
+  .plane-id {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--cyan);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .plane-ratio {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+
+  .midi-badge {
+    font-size: 0.65rem;
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: rgba(157, 78, 221, 0.2);
+    color: var(--violet);
+    border: 1px solid rgba(157, 78, 221, 0.4);
+    text-align: center;
+  }
+
+  /* Modal for Archival Codex */
+  .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 5, 10, 0.86);
+    z-index: 100;
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .modal-backdrop.open {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .modal-content {
+    background: var(--bg-panel);
+    border: 1px solid var(--cyan);
+    border-radius: 10px;
+    max-width: 820px;
+    width: 100%;
+    padding: 24px;
+    box-shadow: 0 0 32px rgba(45, 226, 230, 0.2);
+  }
+
+  .modal-content h2 {
+    color: var(--cyan);
+    letter-spacing: 0.14em;
+    margin-bottom: 12px;
+  }
+
+  .modal-content h3 {
+    color: var(--violet);
+    margin-top: 16px;
+    margin-bottom: 6px;
+    font-size: 1rem;
+  }
+
+  .modal-content p, .modal-content li {
+    font-size: 0.86rem;
+    color: var(--text-main);
+    margin-bottom: 8px;
+  }
+
+  .modal-content ul {
+    padding-left: 20px;
+  }
+
+  footer {
+    text-align: center;
+    font-size: 0.74rem;
+    color: var(--text-muted);
+    padding: 8px;
+  }
+
+/* --- BLACK SATURN // INTERFACE PASS 02 --- */
+:root {
+  --bg-obsidian: #05060b;
+  --bg-panel: rgba(12, 15, 27, .94);
+  --bg-card: #101629;
+  --border-dim: #27324c;
+  --cyan: #69f3ee;
+  --cyan-glow: rgba(45, 226, 230, .22);
+  --violet: #b58aff;
+  --violet-glow: rgba(157, 78, 221, .24);
+  --text-main: #edf3ff;
+  --text-muted: #9aa8c4;
+}
+body {
+  padding: clamp(10px, 2vw, 24px);
+  background:
+    radial-gradient(ellipse at 50% -12%, rgba(109, 76, 180, .22), transparent 48%),
+    radial-gradient(ellipse at 95% 35%, rgba(45, 226, 230, .07), transparent 35%),
+    linear-gradient(180deg, #080a13 0%, #05060b 60%, #080a12 100%);
+}
+.container { max-width: 1440px; gap: 18px; }
+header {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(115deg, rgba(17, 21, 39, .98), rgba(9, 12, 23, .96));
+  border-color: rgba(105, 243, 238, .24);
+  border-radius: 14px;
+  padding: clamp(16px, 2.4vw, 28px);
+  box-shadow: 0 18px 55px rgba(0,0,0,.34), inset 0 1px rgba(255,255,255,.035);
+}
+header::before {
+  content: "";
+  position: absolute;
+  width: 300px; height: 300px;
+  right: 12%; top: -235px;
+  border: 1px solid rgba(105,243,238,.18);
+  border-radius: 50%;
+  box-shadow: 0 0 0 24px rgba(105,243,238,.025), 0 0 0 52px rgba(181,138,255,.025);
+  pointer-events: none;
+}
+.brand-title h1 {
+  font-size: clamp(1.45rem, 3vw, 2.15rem);
+  letter-spacing: .25em;
+  filter: drop-shadow(0 0 16px rgba(105,243,238,.12));
+}
+.brand-subtitle { font-size: .7rem; letter-spacing: .2em; line-height: 1.7; }
+.toolbar { position: relative; z-index: 1; gap: 8px; }
+button {
+  border-radius: 8px;
+  min-height: 38px;
+  padding: 10px 13px;
+  background: linear-gradient(180deg, #151d33, #0e1425);
+  border-color: #303b58;
+  letter-spacing: .045em;
+}
+button:hover { transform: translateY(-1px); }
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+}
+button.primary {
+  background: linear-gradient(120deg, rgba(157,78,221,.36), rgba(45,226,230,.22));
+  box-shadow: inset 0 0 18px rgba(45,226,230,.07), 0 0 22px rgba(45,226,230,.07);
+}
+button.recording { background: #9f2344; border-color: #ff6b8a; }
+.record-readout {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 38px; padding: 0 12px;
+  border: 1px solid var(--border-dim); border-radius: 8px;
+  background: rgba(5,7,14,.72); color: var(--text-muted);
+  font-size: .68rem; letter-spacing: .08em; white-space: nowrap;
+}
+.record-readout strong { color: var(--text-main); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.record-dot { width: 8px; height: 8px; border-radius: 50%; background: #66718a; }
+.record-readout.live { border-color: rgba(255,77,109,.65); color: #ff9bb0; }
+.record-readout.live .record-dot { background: #ff4d6d; box-shadow: 0 0 12px #ff4d6d; animation: pulse 1s infinite; }
+.telemetry-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; }
+.telemetry-card, .panel-box, .visualizer-panel {
+  border-radius: 12px;
+  border-color: rgba(115,137,181,.2);
+  background: linear-gradient(145deg, rgba(17,22,39,.96), rgba(9,12,22,.96));
+  box-shadow: 0 10px 28px rgba(0,0,0,.18), inset 0 1px rgba(255,255,255,.025);
+}
+.telemetry-card { padding: 15px 17px; }
+.telemetry-value { text-shadow: 0 0 18px rgba(105,243,238,.18); }
+.visualizer-panel { padding: 16px; }
+canvas {
+  height: clamp(180px, 25vw, 270px);
+  border-radius: 9px;
+  border-color: #26324b;
+  background: radial-gradient(ellipse at center, #0b1120, #04050a 75%);
+}
+.panel-box { padding: 18px; }
+.panel-title { color: var(--violet); letter-spacing: .1em; }
+input[type="range"] { accent-color: var(--cyan); min-height: 22px; }
+input[type="number"] { border-radius: 6px !important; }
+.plane-strip {
+  min-width: 0;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #151d33, #0c1120);
+  border-color: #2a3652;
+}
+.plane-strip:hover { border-color: rgba(105,243,238,.5); }
+.midi-target { outline: 1px solid var(--violet); }
+footer { letter-spacing: .08em; line-height: 1.8; }
+@media (max-width: 720px) {
+  body { padding: 9px; }
+  header { align-items: flex-start; }
+  .toolbar { width: 100%; }
+  .toolbar button { flex: 1 1 calc(50% - 8px); }
+  .record-readout { flex: 1 1 100%; justify-content: space-between; }
+  .brand-subtitle { letter-spacing: .09em; }
+  .vis-header { align-items: flex-start; }
+  .panel-box { padding: 14px; }
+  .planes-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 380px) {
+  .planes-grid { grid-template-columns: 1fr; }
+  .brand-title h1 { letter-spacing: .16em; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="brand-title">
+      <h1>BLACK SATURN</h1>
+      <div class="brand-subtitle">
+        <span class="reticle"></span>
+        <span>SOLITARIUS SORTIARIUS // 14D ACOUSTIC MANIFOLD</span>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="powerBtn" class="primary">ENGAGE ENGINE</button>
+      <button id="alphaModeBtn">ANCHOR: 137.036 Hz (α⁻¹)</button>
+      <button id="midiLearnBtn">MIDI LEARN: OFF</button>
+      <button id="recordBtn" aria-pressed="false">● REC WAV</button>
+      <span class="record-readout" id="recordReadout"><span class="record-dot"></span><span id="recordStatus">RECORDER STANDBY</span><strong id="recordTimer">00:00</strong></span>
+      <button id="codexBtn">ARCHIVAL CODEX</button>
+      <button id="exportHtmlBtn">EXPORT HTML</button>
+    </div>
+  </header>
+
+  <!-- Astronomical True Solar Time & Telemetry -->
+  <section class="telemetry-grid">
+    <div class="telemetry-card">
+      <div class="telemetry-label">Astronomical True Solar Time</div>
+      <div class="telemetry-value" id="trueSolarClock">--:--:--</div>
+      <div class="telemetry-sub" id="solarHourAngle">Hour Angle: --°</div>
+    </div>
+    <div class="telemetry-card">
+      <div class="telemetry-label">Equation of Time &amp; Meridian Drift</div>
+      <div class="telemetry-value" id="eotDisplay">+0.00 min</div>
+      <div class="telemetry-sub" id="utcClock">UTC: --:--:--</div>
+    </div>
+    <div class="telemetry-card">
+      <div class="telemetry-label">Coordinate Anchor (Davenport Bluff Default)</div>
+      <div class="coord-inputs">
+        <label style="font-size:0.72rem;color:var(--text-muted);">LON:</label>
+        <input type="number" id="lonInput" value="-90.59" step="0.01" min="-180" max="180">
+        <span style="font-size:0.72rem;color:var(--cyan);">°E/W</span>
+      </div>
+      <div class="telemetry-sub" id="localSolarOffset">Meridian Offset: -2.36 min</div>
+    </div>
+    <div class="telemetry-card">
+      <div class="telemetry-label">137 Boundary Limiter &amp; MIDI Status</div>
+      <div class="telemetry-value" id="limiterStatus">SAFE (&lt; 137 α⁻¹)</div>
+      <div class="telemetry-sub" id="midiStatus">Web MIDI: Scanning...</div>
+    </div>
+  </section>
+
+  <!-- Dual-Mode Spacetime Oscilloscope & FFT Spectrum Analyzer -->
+  <section class="visualizer-panel">
+    <div class="vis-header">
+      <span>SPACETIME CURVATURE TELEMETRY // 137 Hz HARMONIC SPECTRUM</span>
+      <div>
+        <button id="visModeBtn" style="padding:4px 10px;font-size:0.74rem;">MODE: DUAL (FFT + WAVE)</button>
+      </div>
+    </div>
+    <canvas id="scopeCanvas" width="1200" height="210"></canvas>
+  </section>
+
+  <!-- Macro Riemannian Controls & Telemetry Drift Presets -->
+  <section class="macro-grid">
+    <div class="panel-box">
+      <div class="panel-title"><span>Riemannian Metric Tensor (g_μν)</span><span>5D/14D</span></div>
+      <div class="control-row" data-midi-id="curvature">
+        <div class="control-header"><span>Metric Curvature (Low-Pass Warp)</span><span id="curvatureVal">1850 Hz</span></div>
+        <input type="range" id="curvatureSlider" min="137" max="8220" value="1850">
+      </div>
+      <div class="control-row" data-midi-id="frameDrag">
+        <div class="control-header"><span>Rotational Frame Dragging (Coupling)</span><span id="frameDragVal">35%</span></div>
+        <input type="range" id="frameDragSlider" min="0" max="100" value="35">
+      </div>
+      <div class="control-row" data-midi-id="dilation">
+        <div class="control-header"><span>Gravitational Time Dilation (Feedback)</span><span id="dilationVal">0.32</span></div>
+        <input type="range" id="dilationSlider" min="0" max="0.88" step="0.01" value="0.32">
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-title"><span>Singularity &amp; Dual Extremality</span><span>S³ + S¹×S²</span></div>
+      <div class="control-row" data-midi-id="singularity">
+        <div class="control-header"><span>Central Singularity Core (S³ Drone)</span><span id="singularityVal">65%</span></div>
+        <input type="range" id="singularitySlider" min="0" max="100" value="65">
+      </div>
+      <div class="control-row" data-midi-id="extremality">
+        <div class="control-header"><span>Dual Extremality Lock (Saturation)</span><span id="extremalityVal">20%</span></div>
+        <input type="range" id="extremalitySlider" min="0" max="100" value="20">
+      </div>
+      <div class="control-row" data-midi-id="masterGain">
+        <div class="control-header"><span>Master Output Gain</span><span id="masterGainVal">75%</span></div>
+        <input type="range" id="masterGainSlider" min="0" max="100" value="75">
+      </div>
+    </div>
+
+    <div class="panel-box">
+      <div class="panel-title"><span>Telemetry Drift Presets</span><span>TOPOLOGY</span></div>
+      <div class="preset-buttons">
+        <button onclick="applyPreset('equilibrium')">ZERO-DRIFT EQUILIBRIUM</button>
+        <button onclick="applyPreset('shear')">HORIZON SHEAR</button>
+        <button onclick="applyPreset('extremality')">DUAL EXTREMALITY LOCK</button>
+        <button onclick="applyPreset('cascade')">14D CAUSALITY CASCADE</button>
+      </div>
+      <div style="margin-top:12px;font-size:0.75rem;color:var(--text-muted);">
+        Click any control while <strong>MIDI LEARN</strong> is active to bind physical hardware faders/knobs.
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 Orthogonal Rotational Planes (14 Spatial Dimensions) -->
+  <section class="panel-box">
+    <div class="panel-title">
+      <span>14D Orthogonal Rotational Planes (x₁x₂ → x₁₃x₁₄)</span>
+      <span>FINE-STRUCTURE HARMONIC MATRIX</span>
+    </div>
+    <div class="planes-grid" id="planesContainer"></div>
+  </section>
+
+  <footer>
+    ARCHIVAL ARTIFACT // BLACK SATURN: SOLITARIUS SORTIARIUS // ZERO-DEPENDENCY WEB AUDIO &amp; RIEMANNIAN SYNTHESIS ENGINE
+  </footer>
+</div>
+
+<!-- Archival Codex Modal -->
+<div class="modal-backdrop" id="codexModal">
+  <div class="modal-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h2>ARCHIVAL CODEX // PHYSICS &amp; SYNTHESIS</h2>
+      <button id="closeCodexBtn">CLOSE [ESC]</button>
+    </div>
+    <h3>1. Riemannian Curvature &amp; The 5D Black Saturn</h3>
+    <p>
+      In standard 4D spacetime, black hole event horizons are restricted to spherical topologies (S²). By extending Bernhard Riemann’s metric tensor (g_μν) into five dimensions (four spatial dimensions plus time), Einstein’s field equations admit the <strong>Black Saturn</strong>: a central spherical black hole (S³) encircled by a spinning black ring (S¹ × S²).
+    </p>
+    <h3>2. Orthogonal Planes of Rotation (5D to 14D)</h3>
+    <p>
+      In four spatial dimensions (x, y, z, w), rotation occurs in independent 2D planes rather than around a 1D axis. A doubly-spinning Black Saturn rotates simultaneously in the xy-plane and zw-plane without gyroscopic wobble. Scaling to <strong>14 spatial dimensions</strong> yields <strong>7 completely orthogonal rotational planes</strong> (x₁x₂ through x₁₃x₁₄), mapped here to 7 independent harmonic oscillators and stereo vectors.
+    </p>
+    <h3>3. Rotational Frame Dragging &amp; Dual Extremality</h3>
+    <ul>
+      <li><strong>Frame Dragging:</strong> Even when the central black hole has zero intrinsic angular momentum, the outer black ring churns the surrounding Riemannian metric, inducing sympathetic rotation in the central horizon.</li>
+      <li><strong>Dual Extremality:</strong> Distributing angular momentum across orthogonal planes allows both horizons to spin to their theoretical maximum simultaneously, clamping thermal Hawking noise to zero.</li>
+    </ul>
+    <h3>4. The 137 (α⁻¹) Fine-Structure Anchor</h3>
+    <p>
+      The 137 Hz / 137.036 Hz anchor is an artistic tuning reference inspired by the numerical value of the inverse fine-structure constant. Because α⁻¹ is dimensionless, it is not itself a frequency. The seven plane ratios and limiter are sound-design mappings, not physical predictions or a simulation of a black hole.
+    </p>
+    <h3>5. Instrument Note</h3>
+    <p>
+      BLACK SATURN uses mathematical and cosmological language as a creative interface for experimental synthesis. Its controls shape oscillators, filtering, delay, stereo placement and dynamics in the browser; they do not reproduce real spacetime curvature, Hawking radiation or higher-dimensional gravity.
+    </p>
+  </div>
+</div>
+
+<script>
+// --- STATE & CONFIGURATION ---
+let audioCtx = null;
+let isRunning = false;
+let useExactAlpha = true; // 137.036 vs 137.000
+let visMode = 'dual'; // 'dual', 'fft', 'wave'
+
+let masterGainNode, limiterNode, filterNode, delayNode, delayFeedbackNode, analyserNode;
+let coreOsc, coreSubOsc, coreGainNode;
+let planeNodes = [];
+
+// WAV Recording buffers
+let isRecording = false;
+let scriptProcessor = null;
+let leftChannelData = [];
+let rightChannelData = [];
+let recordingLength = 0;
+
+// MIDI State
+let midiLearnActive = false;
+let activeMidiTarget = null;
+const midiMap = {}; // ccNumber -> controlId
+
+const PLANE_CONFIGS = [
+  { id: 'plane0', name: 'PLANE I (x₁x₂)', mult: 1.0, detune: 0, pan: -0.75, defaultGain: 0.45 },
+  { id: 'plane1', name: 'PLANE II (x₃x₄)', mult: 1.5, detune: 1.37, pan: 0.75, defaultGain: 0.35 },
+  { id: 'plane2', name: 'PLANE III (x₅x₆)', mult: 2.0, detune: -1.37, pan: -0.5, defaultGain: 0.30 },
+  { id: 'plane3', name: 'PLANE IV (x₇x₈)', mult: 3.0, detune: 2.74, pan: 0.5, defaultGain: 0.22 },
+  { id: 'plane4', name: 'PLANE V (x₉x₁₀)', mult: 4.0, detune: -2.74, pan: -0.3, defaultGain: 0.18 },
+  { id: 'plane5', name: 'PLANE VI (x₁₁x₁₂)', mult: 5.0, detune: 4.11, pan: 0.3, defaultGain: 0.14 },
+  { id: 'plane6', name: 'PLANE VII (x₁₃x₁₄)', mult: 7.0, detune: -4.11, pan: 0.0, defaultGain: 0.10 }
+];
+
+// --- UI INITIALIZATION ---
+const planesContainer = document.getElementById('planesContainer');
+PLANE_CONFIGS.forEach((cfg, idx) => {
+  const strip = document.createElement('div');
+  strip.className = 'plane-strip';
+  strip.dataset.midiId = cfg.id;
+  strip.innerHTML = `
+    <div class="plane-id">
+      <span>${cfg.name}</span>
+      <span id="${cfg.id}Val">${Math.round(cfg.defaultGain * 100)}%</span>
+    </div>
+    <div class="plane-ratio" id="${cfg.id}Freq">${(137.036 * cfg.mult).toFixed(2)} Hz</div>
+    <input type="range" id="${cfg.id}Slider" min="0" max="100" value="${Math.round(cfg.defaultGain * 100)}">
+    <div class="midi-badge" id="${cfg.id}Midi">CC: UNMAPPED</div>
+  `;
+  planesContainer.appendChild(strip);
+
+  const slider = strip.querySelector('input');
+  slider.addEventListener('input', () => {
+    document.getElementById(`${cfg.id}Val`).textContent = `${slider.value}%`;
+    updateAudioParams();
+  });
+
+  strip.addEventListener('click', () => selectMidiTarget(cfg.id, strip));
+});
+
+// Bind macro controls for MIDI Learn selection
+document.querySelectorAll('[data-midi-id]').forEach(el => {
+  if (!el.classList.contains('plane-strip')) {
+    el.addEventListener('click', () => selectMidiTarget(el.dataset.midiId, el));
+  }
+});
+
+function selectMidiTarget(id, element) {
+  if (!midiLearnActive) return;
+  document.querySelectorAll('.midi-target').forEach(el => el.classList.remove('midi-target'));
+  activeMidiTarget = id;
+  element.classList.add('midi-target');
+  document.getElementById('midiStatus').textContent = `MIDI Learn: Move fader for [${id}]`;
+}
+
+// --- ASTRONOMICAL TRUE SOLAR TIME ENGINE ---
+function updateSolarTelemetry() {
+  const now = new Date();
+  const utcHours = now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600 + now.getUTCMilliseconds() / 3600000;
+
+  // Day of year (N)
+  const startOfYear = new Date(Date.UTC(now.getUTCFullYear(), 0, 0));
+  const diff = now - startOfYear;
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  // Equation of Time approximation (minutes)
+  const B = (2 * Math.PI / 365) * (dayOfYear - 81);
+  const eotMinutes = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+
+  const lon = parseFloat(document.getElementById('lonInput').value) || -90.59;
+  // Standard Central Meridian for CST (-6) is -90.0 deg; 4 minutes per degree
+  const solarOffsetFromUTCMinutes = lon * 4 + eotMinutes;
+
+  let trueSolarTotalMinutes = utcHours * 60 + solarOffsetFromUTCMinutes;
+  trueSolarTotalMinutes = ((trueSolarTotalMinutes % 1440) + 1440) % 1440;
+
+  const sH = Math.floor(trueSolarTotalMinutes / 60);
+  const sM = Math.floor(trueSolarTotalMinutes % 60);
+  const sS = Math.floor((trueSolarTotalMinutes * 60) % 60);
+
+  const pad = n => String(n).padStart(2, '0');
+  document.getElementById('trueSolarClock').textContent = `${pad(sH)}:${pad(sM)}:${pad(sS)}`;
+
+  const hourAngle = ((trueSolarTotalMinutes / 60) - 12) * 15;
+  document.getElementById('solarHourAngle').textContent = `Solar Hour Angle: ${hourAngle.toFixed(2)}°`;
+
+  const sign = eotMinutes >= 0 ? '+' : '';
+  document.getElementById('eotDisplay').textContent = `${sign}${eotMinutes.toFixed(2)} min`;
+  document.getElementById('utcClock').textContent = `UTC: ${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+
+  const meridianDiff = (lon - (-90.0)) * 4;
+  const mSign = meridianDiff >= 0 ? '+' : '';
+  document.getElementById('localSolarOffset').textContent = `90°W Meridian Offset: ${mSign}${meridianDiff.toFixed(2)} min`;
+}
+
+setInterval(updateSolarTelemetry, 250);
+updateSolarTelemetry();
+
+// --- WEB AUDIO SYNTHESIS ENGINE ---
+function initAudio() {
+  if (audioCtx) return;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AudioContextClass();
+
+  // Topological 137 Boundary Limiter (DynamicsCompressor)
+  limiterNode = audioCtx.createDynamicsCompressor();
+  limiterNode.threshold.value = -6.0;
+  limiterNode.knee.value = 3.0;
+  limiterNode.ratio.value = 16.0;
+  limiterNode.attack.value = 0.002;
+  limiterNode.release.value = 0.12;
+
+  masterGainNode = audioCtx.createGain();
+  masterGainNode.gain.value = 0.75;
+
+  // Riemannian Metric Curvature Filter
+  filterNode = audioCtx.createBiquadFilter();
+  filterNode.type = 'lowpass';
+  filterNode.frequency.value = 1850;
+  filterNode.Q.value = 3.2;
+
+  // Gravitational Time Dilation Delay
+  delayNode = audioCtx.createDelay(2.0);
+  delayNode.delayTime.value = 0.274; // 2 * 137ms
+  delayFeedbackNode = audioCtx.createGain();
+  delayFeedbackNode.gain.value = 0.32;
+
+  delayNode.connect(delayFeedbackNode);
+  delayFeedbackNode.connect(delayNode);
+
+  // Analyser for Scope & FFT
+  analyserNode = audioCtx.createAnalyser();
+  analyserNode.fftSize = 2048;
+
+  // Recorder Tap (ScriptProcessor for universal offline compatibility)
+  scriptProcessor = audioCtx.createScriptProcessor(4096, 2, 2);
+  scriptProcessor.onaudioprocess = (e) => {
+    const inputL = e.inputBuffer.getChannelData(0);
+    const inputR = e.inputBuffer.numberOfChannels > 1
+      ? e.inputBuffer.getChannelData(1) : inputL;
+    const outputL = e.outputBuffer.getChannelData(0);
+    const outputR = e.outputBuffer.numberOfChannels > 1
+      ? e.outputBuffer.getChannelData(1) : outputL;
+    outputL.set(inputL);
+    if (outputR !== outputL) outputR.set(inputR);
+    if (isRecording) {
+      leftChannelData.push(new Float32Array(inputL));
+      rightChannelData.push(new Float32Array(inputR));
+      recordingLength += inputL.length;
+    }
+  };
+
+  // Routing graph
+  filterNode.connect(limiterNode);
+  filterNode.connect(delayNode);
+  delayNode.connect(limiterNode);
+
+  limiterNode.connect(masterGainNode);
+  masterGainNode.connect(analyserNode);
+  masterGainNode.connect(scriptProcessor);
+  // Route through the processor once: clean output plus a reliable WAV tap.
+  scriptProcessor.connect(audioCtx.destination);
+
+  // Central Singularity Core (S³)
+  coreOsc = audioCtx.createOscillator();
+  coreSubOsc = audioCtx.createOscillator();
+  coreGainNode = audioCtx.createGain();
+
+  coreOsc.type = 'sawtooth';
+  coreSubOsc.type = 'sine';
+  coreGainNode.gain.value = 0.35;
+
+  coreOsc.connect(coreGainNode);
+  coreSubOsc.connect(coreGainNode);
+  coreGainNode.connect(filterNode);
+
+  coreOsc.start();
+  coreSubOsc.start();
+
+  // 7 Orthogonal Rotational Planes
+  planeNodes = PLANE_CONFIGS.map((cfg) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const panner = audioCtx.createStereoPanner();
+
+    osc.type = 'triangle';
+    panner.pan.value = cfg.pan;
+    gain.gain.value = cfg.defaultGain * 0.25;
+
+    osc.connect(gain);
+    gain.connect(panner);
+    panner.connect(filterNode);
+    osc.start();
+
+    return { osc, gain, panner, cfg };
+  });
+
+  updateAudioParams();
+}
+
+function getBaseFreq() {
+  return useExactAlpha ? 137.035999 : 137.0;
+}
+
+function updateAudioParams() {
+  const baseFreq = getBaseFreq();
+  const curvature = parseFloat(document.getElementById('curvatureSlider').value);
+  const frameDrag = parseFloat(document.getElementById('frameDragSlider').value) / 100;
+  const dilation = parseFloat(document.getElementById('dilationSlider').value);
+  const singularity = parseFloat(document.getElementById('singularitySlider').value) / 100;
+  const extremality = parseFloat(document.getElementById('extremalitySlider').value) / 100;
+  const master = parseFloat(document.getElementById('masterGainSlider').value) / 100;
+
+  document.getElementById('curvatureVal').textContent = `${Math.round(curvature)} Hz`;
+  document.getElementById('frameDragVal').textContent = `${Math.round(frameDrag * 100)}%`;
+  document.getElementById('dilationVal').textContent = dilation.toFixed(2);
+  document.getElementById('singularityVal').textContent = `${Math.round(singularity * 100)}%`;
+  document.getElementById('extremalityVal').textContent = `${Math.round(extremality * 100)}%`;
+  document.getElementById('masterGainVal').textContent = `${Math.round(master * 100)}%`;
+
+  // Update displayed plane frequencies
+  let totalPlaneEnergy = 0;
+  PLANE_CONFIGS.forEach((cfg, idx) => {
+    const val = parseFloat(document.getElementById(`${cfg.id}Slider`).value) / 100;
+    totalPlaneEnergy += val;
+    const freq = baseFreq * cfg.mult;
+    document.getElementById(`${cfg.id}Freq`).textContent = `${freq.toFixed(2)} Hz`;
+  });
+
+  // Update 137 Boundary Status indicator
+  const limiterEl = document.getElementById('limiterStatus');
+  if (totalPlaneEnergy > 4.5 || dilation > 0.72) {
+    limiterEl.textContent = 'CLAMPED AT 137 α⁻¹';
+    limiterEl.style.color = 'var(--violet)';
+  } else {
+    limiterEl.textContent = 'SAFE (< 137 α⁻¹)';
+    limiterEl.style.color = 'var(--cyan)';
+  }
+
+  if (!audioCtx) return;
+
+  const now = audioCtx.currentTime;
+  // Frame dragging pulls the central singularity pitch upward in sympathy with outer ring energy
+  const draggedCoreFreq = (baseFreq * 0.5) * (1 + frameDrag * (totalPlaneEnergy / 7) * 0.25);
+  coreOsc.frequency.setTargetAtTime(draggedCoreFreq, now, 0.04);
+  coreSubOsc.frequency.setTargetAtTime(baseFreq * 0.5, now, 0.04);
+  coreGainNode.gain.setTargetAtTime(singularity * 0.4, now, 0.04);
+
+  filterNode.frequency.setTargetAtTime(curvature, now, 0.04);
+  filterNode.Q.setTargetAtTime(1.5 + extremality * 10.0, now, 0.04);
+  delayFeedbackNode.gain.setTargetAtTime(Math.min(dilation, 0.85), now, 0.04);
+  masterGainNode.gain.setTargetAtTime(master * 0.8, now, 0.04);
+
+  planeNodes.forEach((node, idx) => {
+    const sliderVal = parseFloat(document.getElementById(`${node.cfg.id}Slider`).value) / 100;
+    const freq = baseFreq * node.cfg.mult;
+    // Dual extremality locks detune drift toward zero phase error
+    const activeDetune = node.cfg.detune * (1 - extremality * 0.92);
+    node.osc.frequency.setTargetAtTime(freq, now, 0.04);
+    node.osc.detune.setTargetAtTime(activeDetune * (1 + frameDrag), now, 0.04);
+    node.gain.gain.setTargetAtTime(sliderVal * 0.22, now, 0.04);
+  });
+}
+
+// --- PRESETS ---
+function applyPreset(name) {
+  const sets = {
+    equilibrium: { curvature: 1850, frameDrag: 25, dilation: 0.25, singularity: 65, extremality: 15, planes: [50, 35, 25, 18, 12, 8, 5] },
+    shear:       { curvature: 3200, frameDrag: 68, dilation: 0.54, singularity: 55, extremality: 10, planes: [40, 45, 50, 62, 58, 48, 40] },
+    extremality: { curvature: 5400, frameDrag: 90, dilation: 0.42, singularity: 85, extremality: 96, planes: [75, 65, 55, 45, 35, 25, 20] },
+    cascade:     { curvature: 6800, frameDrag: 100, dilation: 0.78, singularity: 80, extremality: 60, planes: [80, 75, 70, 65, 60, 55, 50] }
+  };
+  const p = sets[name];
+  if (!p) return;
+
+  document.getElementById('curvatureSlider').value = p.curvature;
+  document.getElementById('frameDragSlider').value = p.frameDrag;
+  document.getElementById('dilationSlider').value = p.dilation;
+  document.getElementById('singularitySlider').value = p.singularity;
+  document.getElementById('extremalitySlider').value = p.extremality;
+
+  p.planes.forEach((val, i) => {
+    const id = `plane${i}`;
+    document.getElementById(`${id}Slider`).value = val;
+    document.getElementById(`${id}Val`).textContent = `${val}%`;
+  });
+
+  updateAudioParams();
+}
+
+// --- EVENT LISTENERS FOR MACRO SLIDERS & TOOLBAR ---
+['curvatureSlider', 'frameDragSlider', 'dilationSlider', 'singularitySlider', 'extremalitySlider', 'masterGainSlider'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateAudioParams);
+});
+
+document.getElementById('powerBtn').addEventListener('click', async () => {
+  if (!audioCtx) {
+    initAudio();
+  }
+  if (!isRunning) {
+    await audioCtx.resume();
+    isRunning = true;
+    document.getElementById('powerBtn').textContent = 'ENGINE ONLINE';
+    document.getElementById('powerBtn').classList.add('active');
+  } else {
+    await audioCtx.suspend();
+    isRunning = false;
+    document.getElementById('powerBtn').textContent = 'ENGAGE ENGINE';
+    document.getElementById('powerBtn').classList.remove('active');
+  }
+});
+
+document.getElementById('alphaModeBtn').addEventListener('click', () => {
+  useExactAlpha = !useExactAlpha;
+  document.getElementById('alphaModeBtn').textContent = useExactAlpha
+    ? 'ANCHOR: 137.036 Hz (α⁻¹)'
+    : 'ANCHOR: 137.000 Hz (INT)';
+  updateAudioParams();
+});
+
+document.getElementById('visModeBtn').addEventListener('click', () => {
+  const modes = ['dual', 'fft', 'wave'];
+  visMode = modes[(modes.indexOf(visMode) + 1) % modes.length];
+  document.getElementById('visModeBtn').textContent = `MODE: ${visMode.toUpperCase()}`;
+});
+
+// --- CODEX MODAL ---
+const codexModal = document.getElementById('codexModal');
+document.getElementById('codexBtn').addEventListener('click', () => codexModal.classList.add('open'));
+document.getElementById('closeCodexBtn').addEventListener('click', () => codexModal.classList.remove('open'));
+codexModal.addEventListener('click', (event) => { if (event.target === codexModal) codexModal.classList.remove('open'); });
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') codexModal.classList.remove('open');
+});
+
+// --- WEB MIDI API & MIDI LEARN ---
+document.getElementById('midiLearnBtn').addEventListener('click', () => {
+  midiLearnActive = !midiLearnActive;
+  const btn = document.getElementById('midiLearnBtn');
+  btn.textContent = midiLearnActive ? 'MIDI LEARN: ON' : 'MIDI LEARN: OFF';
+  btn.classList.toggle('active', midiLearnActive);
+  if (!midiLearnActive) {
+    activeMidiTarget = null;
+    document.querySelectorAll('.midi-target').forEach(el => el.classList.remove('midi-target'));
+  }
+});
+
+if (navigator.requestMIDIAccess) {
+  navigator.requestMIDIAccess().then((midiAccess) => {
+    const inputs = Array.from(midiAccess.inputs.values());
+    document.getElementById('midiStatus').textContent = inputs.length > 0
+      ? `Web MIDI: ${inputs.length} Device(s) Ready`
+      : 'Web MIDI: Ready (No Hardware Detected)';
+
+    midiAccess.inputs.forEach(input => {
+      input.onmidimessage = handleMidiMessage;
+    });
+    midiAccess.onstatechange = () => {
+      const count = Array.from(midiAccess.inputs.values()).length;
+      document.getElementById('midiStatus').textContent = `Web MIDI: ${count} Device(s) Connected`;
+      midiAccess.inputs.forEach(input => { input.onmidimessage = handleMidiMessage; });
+    };
+  }).catch(() => {
+    document.getElementById('midiStatus').textContent = 'Web MIDI: Unavailable in Context';
+  });
+} else {
+  document.getElementById('midiStatus').textContent = 'Web MIDI: Not Supported by Browser';
+}
+
+function handleMidiMessage(msg) {
+  const [status, cc, value] = msg.data;
+  // Control Change (0xB0 - 0xBF)
+  if ((status & 0xF0) === 0xB0) {
+    if (midiLearnActive && activeMidiTarget) {
+      midiMap[cc] = activeMidiTarget;
+      const badge = document.getElementById(`${activeMidiTarget}Midi`);
+      if (badge) badge.textContent = `CC: ${cc}`;
+      document.getElementById('midiStatus').textContent = `Mapped CC #${cc} -> ${activeMidiTarget}`;
+    }
+    const targetId = midiMap[cc];
+    if (targetId) {
+      const slider = document.getElementById(`${targetId}Slider`);
+      if (slider) {
+        const min = parseFloat(slider.min);
+        const max = parseFloat(slider.max);
+        const scaled = min + (value / 127) * (max - min);
+        slider.value = scaled;
+        const valLabel = document.getElementById(`${targetId}Val`);
+        if (valLabel && targetId.startsWith('plane')) {
+          valLabel.textContent = `${Math.round(scaled)}%`;
+        }
+        updateAudioParams();
+      }
+    }
+  }
+}
+
+// --- STEREO WAV RECORDER // PASS 02 ---
+let recordStartedAt = 0;
+let recordClockHandle = null;
+
+function formatRecordTime(ms) {
+  const total = Math.floor(ms / 1000);
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+function setRecorderState(active, statusText) {
+  const readout = document.getElementById('recordReadout');
+  const btn = document.getElementById('recordBtn');
+  readout.classList.toggle('live', active);
+  btn.classList.toggle('recording', active);
+  btn.setAttribute('aria-pressed', String(active));
+  document.getElementById('recordStatus').textContent = statusText;
+}
+document.getElementById('recordBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('recordBtn');
+  if (!audioCtx) initAudio();
+  try {
+    // Audio must be running before the recorder begins capturing.
+    if (audioCtx.state !== 'running') await audioCtx.resume();
+    isRunning = true;
+    document.getElementById('powerBtn').textContent = 'ENGINE ONLINE';
+    document.getElementById('powerBtn').classList.add('active');
+
+    if (!isRecording) {
+      leftChannelData = [];
+      rightChannelData = [];
+      recordingLength = 0;
+      recordStartedAt = performance.now();
+      isRecording = true;
+      btn.textContent = '■ STOP & SAVE WAV';
+      setRecorderState(true, 'RECORDING');
+      clearInterval(recordClockHandle);
+      recordClockHandle = setInterval(() => {
+        document.getElementById('recordTimer').textContent =
+          formatRecordTime(performance.now() - recordStartedAt);
+      }, 250);
+    } else {
+      isRecording = false;
+      clearInterval(recordClockHandle);
+      btn.textContent = '● REC WAV';
+      setRecorderState(false, 'FINALIZING');
+      document.getElementById('recordTimer').textContent =
+        formatRecordTime(performance.now() - recordStartedAt);
+      exportWavFile();
+    }
+  } catch (err) {
+    setRecorderState(false, 'AUDIO PERMISSION / CONTEXT ERROR');
+    console.error('Recorder could not start:', err);
+  }
+});
+
+function exportWavFile() {
+  if (!recordingLength || !audioCtx) {
+    setRecorderState(false, 'NO AUDIO CAPTURED');
+    return;
+  }
+  const sampleRate = audioCtx.sampleRate;
+  const frameCount = recordingLength;
+  const buffer = new ArrayBuffer(44 + frameCount * 4);
+  const view = new DataView(buffer);
+  const writeString = (offset, value) => {
+    for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i));
+  };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + frameCount * 4, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 2, true); // Stereo
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 4, true);
+  view.setUint16(32, 4, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, frameCount * 4, true);
+
+  let frame = 0;
+  for (let chunk = 0; chunk < leftChannelData.length; chunk++) {
+    const left = leftChannelData[chunk];
+    const right = rightChannelData[chunk];
+    for (let i = 0; i < left.length; i++, frame++) {
+      const l = Math.max(-1, Math.min(1, left[i]));
+      const r = Math.max(-1, Math.min(1, right[i]));
+      const offset = 44 + frame * 4;
+      view.setInt16(offset, l < 0 ? l * 0x8000 : l * 0x7FFF, true);
+      view.setInt16(offset + 2, r < 0 ? r * 0x8000 : r * 0x7FFF, true);
+    }
+  }
+  const blob = new Blob([buffer], { type: 'audio/wav' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `black-saturn-session-${new Date().toISOString().replace(/[:.]/g, '-')}.wav`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  leftChannelData = [];
+  rightChannelData = [];
+  recordingLength = 0;
+  setRecorderState(false, 'WAV EXPORTED');
+  setTimeout(() => {
+    if (!isRecording) setRecorderState(false, 'RECORDER STANDBY');
+  }, 3500);
+}
+
+// --- SELF-CONTAINED STANDALONE HTML EXPORT ---
+document.getElementById('exportHtmlBtn').addEventListener('click', () => {
+  const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'black-saturn-solitarius-sortiarius-14d.html';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// --- REAL-TIME OSCILLOSCOPE & FFT SPECTRUM VISUALIZER ---
+const canvas = document.getElementById('scopeCanvas');
+const ctx = canvas.getContext('2d');
+
+function drawVisualizer() {
+  requestAnimationFrame(drawVisualizer);
+  const width = canvas.width;
+  const height = canvas.height;
+
+  ctx.fillStyle = '#05060b';
+  ctx.fillRect(0, 0, width, height);
+
+  // Subtle grid lines
+  ctx.strokeStyle = 'rgba(45, 226, 230, 0.08)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < width; x += 60) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+  }
+  for (let y = 0; y < height; y += 35) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+  }
+
+  if (!analyserNode || !isRunning) {
+    // Idle Black Saturn ring reticle graphic
+    ctx.strokeStyle = 'rgba(157, 78, 221, 0.35)';
+    ctx.beginPath();
+    ctx.ellipse(width / 2, height / 2, 160, 32, -0.12, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(45, 226, 230, 0.45)';
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, 42, 0, Math.PI * 2);
+    ctx.stroke();
+    return;
+  }
+
+  const bufferLength = analyserNode.frequencyBinCount;
+
+  // FFT Spectrum
+  if (visMode === 'dual' || visMode === 'fft') {
+    const freqData = new Uint8Array(bufferLength);
+    analyserNode.getByteFrequencyData(freqData);
+    const maxBins = 220; // Focus on low-to-mid harmonic spectrum (0 - ~4.7 kHz)
+    const barWidth = width / maxBins;
+
+    for (let i = 0; i < maxBins; i++) {
+      const val = freqData[i] / 255;
+      const barHeight = val * (height * 0.85);
+      const grad = ctx.createLinearGradient(0, height - barHeight, 0, height);
+      grad.addColorStop(0, '#2de2e6');
+      grad.addColorStop(1, '#9d4edd');
+      ctx.fillStyle = grad;
+      ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+    }
+
+    // Pin marker on 137 Hz Fundamental
+    const nyquist = audioCtx.sampleRate / 2;
+    const bin137 = Math.round((getBaseFreq() / nyquist) * bufferLength);
+    const x137 = bin137 * barWidth;
+    ctx.strokeStyle = '#00f5d4';
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x137, 0);
+    ctx.lineTo(x137, height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#00f5d4';
+    ctx.font = '11px monospace';
+    ctx.fillText(`137 α⁻¹ (${getBaseFreq().toFixed(2)} Hz)`, x137 + 6, 16);
+  }
+
+  // Time-Domain Oscilloscope
+  if (visMode === 'dual' || visMode === 'wave') {
+    const timeData = new Uint8Array(bufferLength);
+    analyserNode.getByteTimeDomainData(timeData);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#2de2e6';
+    ctx.beginPath();
+
+    const sliceWidth = width / bufferLength;
+    let x = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      const v = timeData[i] / 128.0;
+      const y = (v * height) / 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      x += sliceWidth;
+    }
+    ctx.stroke();
+  }
+}
+
+drawVisualizer();
+</script>
+</body>
+</html>
